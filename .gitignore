@@ -3,3 +3,7 @@
 ################################################################################
 
 /.vs
+/ChatApp/.vs/ChatApp
+/ChatApp/ChatApp/bin/Debug/net6.0/ref/ChatApp.dll
+/ChatApp/ChatApp/bin/Debug/net6.0
+/ChatApp/ChatApp/obj
