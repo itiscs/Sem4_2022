@@ -1,16 +1,22 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using IdentityApp.Models;
+using IdentityApp.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityApp.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class RolesController : Controller
     {
         RoleManager<IdentityRole> _roleManager;
+        UserManager<AppUser> _userManager;
 
-        public RolesController(RoleManager<IdentityRole> roleManager)
+        public RolesController(RoleManager<IdentityRole> roleManager, UserManager<AppUser> userManager)
         {
             _roleManager = roleManager;
+            _userManager = userManager;
         }
 
         // GET: RolesController
@@ -54,46 +60,66 @@ namespace IdentityApp.Controllers
             return View(name);
         }
 
-        // GET: RolesController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
+        public IActionResult UserList() => View(_userManager.Users.ToList());
 
-        // POST: RolesController/Edit/5
+        public async Task<IActionResult> Edit(string userId)
+        {
+            // получаем пользователя
+            AppUser user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                // получем список ролей пользователя
+                var userRoles = await _userManager.GetRolesAsync(user);
+                var allRoles = _roleManager.Roles.ToList();
+                ChangeRoleViewModel model = new ChangeRoleViewModel
+                {
+                    UserId = user.Id,
+                    UserName = user.UserName,
+                    UserEmail = user.Email,
+                    UserRoles = userRoles,
+                    AllRoles = allRoles
+                };
+                return View(model);
+            }
+
+            return NotFound();
+        }
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Edit(string userId, List<string> roles)
         {
-            try
+            // получаем пользователя
+            AppUser user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
             {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
+                // получем список ролей пользователя
+                var userRoles = await _userManager.GetRolesAsync(user);
+                // получаем все роли
+                var allRoles = _roleManager.Roles.ToList();
+                // получаем список ролей, которые были добавлены
+                var addedRoles = roles.Except(userRoles);
+                // получаем роли, которые были удалены
+                var removedRoles = userRoles.Except(roles);
 
-        // GET: RolesController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
+                await _userManager.AddToRolesAsync(user, addedRoles);
+
+                await _userManager.RemoveFromRolesAsync(user, removedRoles);
+
+                return RedirectToAction("UserList");
+            }
+
+            return NotFound();
         }
 
         // POST: RolesController/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<ActionResult> Delete(string id)
         {
-            try
+            IdentityRole role = await _roleManager.FindByIdAsync(id);
+            if (role != null)
             {
-                return RedirectToAction(nameof(Index));
+                IdentityResult result = await _roleManager.DeleteAsync(role);
             }
-            catch
-            {
-                return View();
-            }
+            return RedirectToAction("Index");
         }
     }
 }
