@@ -9,5 +9,7 @@ namespace IdentityApp.Models
 
         [PersonalData]
         public DateTime Birthday { get; set; }
+
+        public int Discount { get; set; }
     }
 }

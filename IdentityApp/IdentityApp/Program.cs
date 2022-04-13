@@ -1,4 +1,5 @@
 using IdentityApp.Data;
+using IdentityApp.Infrastructure;
 using IdentityApp.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,11 @@ builder.Services.AddIdentity<AppUser,IdentityRole>(options => options.SignIn.Req
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders()
     .AddDefaultUI();
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(option =>
+{
+   // option.ModelBinderProviders.Insert(0, new CartModelBinderProvider());
+}
+    );
 builder.Services.AddRazorPages();
 builder.Services.ConfigureApplicationCookie(options =>
 {

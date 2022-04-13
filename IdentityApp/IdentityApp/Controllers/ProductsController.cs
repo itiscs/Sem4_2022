@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using IdentityApp.Data;
 using IdentityApp.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityApp.Controllers
 {
+    [Authorize]
     public class ProductsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -45,6 +47,7 @@ namespace IdentityApp.Controllers
         }
 
         // GET: Products/Create
+        [Authorize("Admin")]
         public IActionResult Create()
         {
             return View();
@@ -55,6 +58,7 @@ namespace IdentityApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize("Admin")]
         public async Task<IActionResult> Create([Bind("ProductId,Name,Description,ImageUrl,Price")] Product product)
         {
             if (ModelState.IsValid)
@@ -67,6 +71,7 @@ namespace IdentityApp.Controllers
         }
 
         // GET: Products/Edit/5
+        [Authorize("Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -87,6 +92,7 @@ namespace IdentityApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize("Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("ProductId,Name,Description,ImageUrl,Price")] Product product)
         {
             if (id != product.ProductId)
@@ -118,6 +124,7 @@ namespace IdentityApp.Controllers
         }
 
         // GET: Products/Delete/5
+        [Authorize("Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -138,6 +145,7 @@ namespace IdentityApp.Controllers
         // POST: Products/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize("Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var product = await _context.Products.FindAsync(id);

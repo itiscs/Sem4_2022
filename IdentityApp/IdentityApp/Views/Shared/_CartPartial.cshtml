@@ -1,0 +1,13 @@
+﻿@using IdentityApp.Extensions
+@using IdentityApp.Domain
+@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+@if(HttpContextAccessor.HttpContext.Session.Keys.Contains("Cart"))
+{
+<div class="navbar-text navbar-right">
+    <a asp-controller="Cart" asp-action="Index">
+    <b>Ваша корзина: @(HttpContextAccessor.HttpContext.Session.Get<Cart>("Cart").ComputeTotalValue())  руб</b>
+    </a>
+</div>
+}

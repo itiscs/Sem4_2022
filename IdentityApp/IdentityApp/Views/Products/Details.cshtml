@@ -45,6 +45,10 @@
                         <input type="submit" class="btn btn-success" value="Добавить в корзину" />
                     </div>
                 }
-    <a asp-action="Edit" asp-route-id="@Model?.ProductId">Edit</a> |
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model?.ProductId">Edit</a>
+        @Html.Raw("|")
+    }
     <a asp-action="Index">Back to List</a>
 </div>

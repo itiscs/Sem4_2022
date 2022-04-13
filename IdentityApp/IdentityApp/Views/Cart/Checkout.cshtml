@@ -1,0 +1,45 @@
+﻿@model IdentityApp.Domain.Cart
+
+@{
+    ViewBag.Title = "Ваша корзина";
+}
+
+<h2>Ваша корзина</h2>
+
+<form method="post">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th class="text-right">Цена</th>
+                <th>Кол-во</th>
+                <th class="text-right">Общая цена</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var line in Model.Lines)
+            {
+                <tr>
+                    <td class="text-left">@line.Product.Name</td>
+                    <td class="text-right">@line.Product.Price.ToString("# руб")</td>
+                    <td class="text-center">@line.Quantity</td>
+                    <td class="text-right">
+                        @((line.Quantity * line.Product.Price).ToString("# руб"))
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-right">Итого:</td>
+                <td class="text-right">
+                    @Model.ComputeTotalValue().ToString("# руб")
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="text-center">
+        <input type="submit" value="Создать заказ" />
+    </div>
+</form>

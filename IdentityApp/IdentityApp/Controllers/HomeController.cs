@@ -25,6 +25,7 @@ namespace IdentityApp.Controllers
 
         public IActionResult Privacy()
         {
+            ViewData["Message"] = "Hello, world!";
             return View();
         }
 

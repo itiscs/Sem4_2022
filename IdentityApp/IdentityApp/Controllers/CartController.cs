@@ -13,11 +13,10 @@ namespace IdentityApp.Controllers
 
         public IActionResult Index(string returnUrl)
         {
-           
-                return View(new CartIndexViewModel
+            return View(new CartIndexViewModel
                 {
                     Cart = GetCart(),
-                    ReturnUrl = returnUrl
+                    ReturnUrl = returnUrl==null ? "Products" : returnUrl
                 });
             
         }
@@ -36,7 +35,7 @@ namespace IdentityApp.Controllers
                 var cart = GetCart();
                 cart.AddItem(prod, 1);
                 HttpContext.Session.Set<Cart>("Cart", cart);
-            }
+            }          
             return RedirectToAction("Index", new { returnUrl });
         }
 
@@ -46,10 +45,42 @@ namespace IdentityApp.Controllers
 
             if (prod != null)
             {
-                GetCart().RemoveLine(prod);
+                var cart = GetCart();
+                cart.RemoveLine(prod);
+                HttpContext.Session.Set<Cart>("Cart", cart);                
             }
             return RedirectToAction("Index", new { returnUrl });
         }
+
+        public IActionResult Checkout()
+        {
+            return View(GetCart());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Checkout(Cart cart)
+        {
+            cart = GetCart();
+            var order = new Order();
+            order.OrderDate = DateTime.Now.ToUniversalTime();
+            order.OrderStatus = OrderStatus.Created;
+            order.UserName = User.Identity.Name;
+            foreach (var line in cart.Lines)
+            {
+                order.Lines.Add(new OrderLine()
+                {
+                    ProductId = line.Product.ProductId,
+                    Price = line.Product.Price,
+                    Quantity = line.Quantity
+                });
+            }
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+            HttpContext.Session.Remove("Cart");
+            return RedirectToAction("Details","Orders",new { id = order.OrderID });
+        }
+
+      
 
         public Cart GetCart()
         {
