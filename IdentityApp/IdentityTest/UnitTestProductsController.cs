@@ -50,11 +50,9 @@ namespace IdentityTest
         }
 
         [Fact]
-        public async void AddProductReturnsARedirectAndAddsUser()
+        public async void AddProductReturnsARedirectAndAddsProduct()
         {
             // Arrange
-            var mock = new Mock<IUnitOfWork>();
-            var controller = new ProductsController(mock.Object);
             var newProduct = new Product()
             {
                 ProductId = 5,
@@ -63,6 +61,10 @@ namespace IdentityTest
                 Price = 500,
                 ImageUrl = "image 5"
             };
+            var moq = new Mock<IUnitOfWork>();
+            moq.Setup(repo => repo.Products.Add(newProduct)).Returns(AddTestProduct(newProduct));
+            var controller = new ProductsController(moq.Object);
+            
 
             // Act
             var result = await controller.Create(newProduct);
@@ -71,7 +73,7 @@ namespace IdentityTest
             var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Null(redirectToActionResult.ControllerName);
             Assert.Equal("Index", redirectToActionResult.ActionName);
-            mock.Verify(r => r.Products.Add(newProduct));
+            moq.Verify(r => r.Products.Add(newProduct));
         }
 
         [Fact]
@@ -89,7 +91,7 @@ namespace IdentityTest
         }
 
         [Fact]
-        public async void GetProductReturnsNotFoundResultWhenUserNotFound()
+        public async void GetProductReturnsNotFoundResultWhenProductNotFound()
         {
             // Arrange
             int testProductId = 5;
@@ -106,7 +108,7 @@ namespace IdentityTest
         }
 
         [Fact]
-        public async void GetProductReturnsViewResultWithUser()
+        public async void GetProductReturnsViewResultWithProduct()
         {
             // Arrange
             int testProductId = 1;
@@ -149,6 +151,15 @@ namespace IdentityTest
             var prods = await GetTestProducts() as List<Product>;
 
             return prods.Find(p => p.ProductId == id);
+        }
+
+        private async Task<bool> AddTestProduct(Product prod)
+        {
+            var prods = await GetTestProducts() as List<Product>;
+
+            prods.Add(prod);
+
+            return true;
         }
     }
 }
