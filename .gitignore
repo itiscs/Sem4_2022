@@ -26,3 +26,5 @@
 /IdentityApp/IdentityApp/obj
 /IdentityApp/.vs/IdentityApp
 /IdentityApp/IdentityApp/bin/Release/net6.0
+/IdentityApp/MSTestProject/bin/Debug/net6.0
+/IdentityApp/NUnitTestProject/bin/Debug/net6.0

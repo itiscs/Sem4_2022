@@ -14,21 +14,22 @@ namespace IdentityApp.Controllers
 {
     public class OrdersController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public OrdersController(ApplicationDbContext context)
+        public OrdersController(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         // GET: Orders
         [Authorize]
         public async Task<IActionResult> Index()
         {
-            if(User.IsInRole("Admin"))
-                return View(await _context.Orders.ToListAsync());
+            var orders = await _unitOfWork.Orders.GetAll();
+            if (User.IsInRole("Admin"))
+                return View(orders.OrderBy(o=>o.OrderDate));
             else
-                return View(await _context.Orders.Where(o=>o.UserName==User.Identity.Name).ToListAsync());
+                return View(orders.Where(o=>o.UserName==User.Identity.Name).OrderBy(o=>o.OrderDate).ToList());
         }
 
         // GET: Orders/Details/5
@@ -40,8 +41,8 @@ namespace IdentityApp.Controllers
                 return NotFound();
             }
 
-            var order = await _context.Orders.Include(o=>o.Lines).ThenInclude(l=>l.Product)
-                .FirstOrDefaultAsync(m => m.OrderID == id);
+            var order = await _unitOfWork.Orders.GetById(id.Value);
+
             if (order == null)
             {
                 return NotFound();
@@ -51,6 +52,8 @@ namespace IdentityApp.Controllers
                 return BadRequest();
             }
 
+            
+            //return View(order.Include(o => o.Lines).ThenInclude(l => l.Product));
             return View(order);
         }
 
@@ -66,7 +69,7 @@ namespace IdentityApp.Controllers
                 return NotFound();
             }
 
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _unitOfWork.Orders.GetById(id.Value);
             if (order == null)
             {
                 return NotFound();
@@ -93,8 +96,8 @@ namespace IdentityApp.Controllers
                 try
                 {
                     order.OrderDate = order.OrderDate.ToUniversalTime();
-                    _context.Update(order);
-                    await _context.SaveChangesAsync();
+                    await _unitOfWork.Orders.Update(order);
+                    await _unitOfWork.CompleteAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -121,8 +124,7 @@ namespace IdentityApp.Controllers
                 return NotFound();
             }
 
-            var order = await _context.Orders
-                .FirstOrDefaultAsync(m => m.OrderID == id);
+            var order = await _unitOfWork.Orders.GetById(id.Value);
             if (order == null)
             {
                 return NotFound();
@@ -137,15 +139,14 @@ namespace IdentityApp.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var order = await _context.Orders.FindAsync(id);
-            _context.Orders.Remove(order);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Orders.Delete(id);
+            await _unitOfWork.CompleteAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool OrderExists(int id)
         {
-            return _context.Orders.Any(e => e.OrderID == id);
+            return _unitOfWork.Orders.GetById(id) != null;
         }
     }
 }

@@ -1,6 +1,10 @@
 ﻿using Xunit;
 using IdentityApp.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Moq;
+using IdentityApp.Data;
+using System.Collections.Generic;
+using IdentityApp.Models;
 
 namespace IdentityTest
 {
@@ -20,6 +24,8 @@ namespace IdentityTest
             Assert.Equal("Hello, world!", result?.ViewData["Message"]);
            // Assert.Equal("Privacy Policy", result?.ViewData["Title"]);
         }
+
+       
 
         [Fact]
         public async void IndexHomeResult()

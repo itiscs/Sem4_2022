@@ -9,7 +9,12 @@ namespace IdentityApp.Controllers
 {
     public class CartController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
+
+        public CartController(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
 
         public IActionResult Index(string returnUrl)
         {
@@ -21,14 +26,11 @@ namespace IdentityApp.Controllers
             
         }
 
-        public CartController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+      
 
-        public IActionResult AddToCart(int productId, string returnUrl)
+        public async Task<IActionResult> AddToCart(int productId, string returnUrl)
         {
-            Product? prod = _context.Products.FirstOrDefault(g => g.ProductId == productId);
+            Product prod = await _unitOfWork.Products.GetById(productId);
 
             if (prod != null)
             {
@@ -39,9 +41,9 @@ namespace IdentityApp.Controllers
             return RedirectToAction("Index", new { returnUrl });
         }
 
-        public IActionResult RemoveFromCart(int productId, string returnUrl)
+        public async Task<IActionResult> RemoveFromCart(int productId, string returnUrl)
         {
-            Product? prod = _context.Products.FirstOrDefault(g => g.ProductId == productId);
+            Product prod = await _unitOfWork.Products.GetById(productId);
 
             if (prod != null)
             {
@@ -74,8 +76,8 @@ namespace IdentityApp.Controllers
                     Quantity = line.Quantity
                 });
             }
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Orders.Add(order);
+            await _unitOfWork.CompleteAsync();
             HttpContext.Session.Remove("Cart");
             return RedirectToAction("Details","Orders",new { id = order.OrderID });
         }
