@@ -3739,6 +3739,7 @@
           "Microsoft.AspNetCore.Identity.UI": "6.0.2",
           "Microsoft.EntityFrameworkCore.SqlServer": "6.0.3",
           "Microsoft.VisualStudio.Web.CodeGeneration.Design": "6.0.2",
+          "Newtonsoft.Json": "13.0.1",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "6.0.3"
         },
         "compile": {

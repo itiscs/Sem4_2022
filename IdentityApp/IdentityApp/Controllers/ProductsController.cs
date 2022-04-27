@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using IdentityApp.Data;
 using IdentityApp.Models;
 using Microsoft.AspNetCore.Authorization;
+using IdentityApp.Infrastructure;
 
 namespace IdentityApp.Controllers
 {
@@ -16,16 +17,20 @@ namespace IdentityApp.Controllers
     public class ProductsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ProductService serv;
 
-        public ProductsController(IUnitOfWork unitOfWork)
+        public ProductsController(IUnitOfWork unitOfWork, IConfiguration conf)
         {
             _unitOfWork = unitOfWork;
+            serv = new ProductService(conf);
         }
 
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            return View(await _unitOfWork.Products.GetAll());
+            //return View(await _unitOfWork.Products.GetAll());
+            return View(await serv.GetProducts());
+
         }
 
         // GET: Products/Details/5
@@ -36,7 +41,8 @@ namespace IdentityApp.Controllers
                 return BadRequest();
             }
 
-            var product = await _unitOfWork.Products.GetById(id.Value);
+            //var product = await _unitOfWork.Products.GetById(id.Value);
+            var product = await serv.GetProductByID(id.Value);
             if (product == null)
             {
                 return NotFound();
@@ -62,8 +68,9 @@ namespace IdentityApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _unitOfWork.Products.Add(product);
-                await _unitOfWork.CompleteAsync();
+                //await _unitOfWork.Products.Add(product);
+                //await _unitOfWork.CompleteAsync();
+                await serv.AddProduct(product);
                 return RedirectToAction(nameof(Index));
             }
             return View(product);
@@ -78,7 +85,9 @@ namespace IdentityApp.Controllers
                 return NotFound();
             }
 
-            var product = await _unitOfWork.Products.GetById(id.Value);
+            //var product = await _unitOfWork.Products.GetById(id.Value);
+            var product = await serv.GetProductByID(id.Value);
+
             if (product == null)
             {
                 return NotFound();
@@ -103,8 +112,9 @@ namespace IdentityApp.Controllers
             {
                 try
                 {
-                    await _unitOfWork.Products.Update(product);
-                    await _unitOfWork.CompleteAsync();
+                    //await _unitOfWork.Products.Update(product);
+                    //await _unitOfWork.CompleteAsync();
+                    await serv.EditProduct(id, product);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -131,7 +141,8 @@ namespace IdentityApp.Controllers
                 return NotFound();
             }
 
-            var product = await _unitOfWork.Products.GetById(id.Value);
+            //var product = await _unitOfWork.Products.GetById(id.Value);
+            var product = await serv.GetProductByID(id.Value);
             if (product == null)
             {
                 return NotFound();
@@ -146,14 +157,18 @@ namespace IdentityApp.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await _unitOfWork.Products.Delete(id);
-            await _unitOfWork.CompleteAsync();
+            //await _unitOfWork.Products.Delete(id);
+            //await _unitOfWork.CompleteAsync();
+            await serv.DeleteProduct(id);
+
             return RedirectToAction(nameof(Index));
         }
 
         private bool ProductExists(int id)
         {
-            return _unitOfWork.Products.GetById(id) != null;
+//            return _unitOfWork.Products.GetById(id) != null;
+            return serv.GetProductByID(id) != null;
+
         }
     }
 }
