@@ -18,16 +18,30 @@ namespace IdentityApp.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ProductService serv;
+        private string loginToken;
 
         public ProductsController(IUnitOfWork unitOfWork, IConfiguration conf)
         {
-            _unitOfWork = unitOfWork;
+            _unitOfWork = unitOfWork; 
             serv = new ProductService(conf);
+        }
+
+        private async Task LoginToApi()
+        {
+            if (HttpContext.Session.Keys.Contains("ApiToken"))
+                loginToken = HttpContext.Session.GetString("ApiToken");
+            else
+            {
+                loginToken = await serv.GetToken();
+                HttpContext.Session.SetString("ApiToken", loginToken);
+            }
+            serv.AddToken(loginToken);
         }
 
         // GET: Products
         public async Task<IActionResult> Index()
         {
+            await LoginToApi();
             //return View(await _unitOfWork.Products.GetAll());
             return View(await serv.GetProducts());
 
@@ -40,7 +54,7 @@ namespace IdentityApp.Controllers
             {
                 return BadRequest();
             }
-
+            await LoginToApi();
             //var product = await _unitOfWork.Products.GetById(id.Value);
             var product = await serv.GetProductByID(id.Value);
             if (product == null)
@@ -68,6 +82,7 @@ namespace IdentityApp.Controllers
         {
             if (ModelState.IsValid)
             {
+                await LoginToApi();
                 //await _unitOfWork.Products.Add(product);
                 //await _unitOfWork.CompleteAsync();
                 await serv.AddProduct(product);
@@ -86,6 +101,7 @@ namespace IdentityApp.Controllers
             }
 
             //var product = await _unitOfWork.Products.GetById(id.Value);
+            await LoginToApi();
             var product = await serv.GetProductByID(id.Value);
 
             if (product == null)
@@ -114,6 +130,7 @@ namespace IdentityApp.Controllers
                 {
                     //await _unitOfWork.Products.Update(product);
                     //await _unitOfWork.CompleteAsync();
+                    await LoginToApi();
                     await serv.EditProduct(id, product);
                 }
                 catch (DbUpdateConcurrencyException)
@@ -142,6 +159,7 @@ namespace IdentityApp.Controllers
             }
 
             //var product = await _unitOfWork.Products.GetById(id.Value);
+            await LoginToApi();
             var product = await serv.GetProductByID(id.Value);
             if (product == null)
             {
@@ -159,6 +177,7 @@ namespace IdentityApp.Controllers
         {
             //await _unitOfWork.Products.Delete(id);
             //await _unitOfWork.CompleteAsync();
+            await LoginToApi();
             await serv.DeleteProduct(id);
 
             return RedirectToAction(nameof(Index));
@@ -166,7 +185,7 @@ namespace IdentityApp.Controllers
 
         private bool ProductExists(int id)
         {
-//            return _unitOfWork.Products.GetById(id) != null;
+            // return _unitOfWork.Products.GetById(id) != null;
             return serv.GetProductByID(id) != null;
 
         }

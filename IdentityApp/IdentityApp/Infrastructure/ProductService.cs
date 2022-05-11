@@ -7,11 +7,32 @@ namespace IdentityApp.Infrastructure
     public class ProductService
     {
         HttpClient client = new HttpClient();
-        string uri; 
+        string uri;
+        string tokenUri;
+        class LoginResponse
+        {
+            public string access_token;
+            public string username;
+        }
 
         public ProductService(IConfiguration conf)
         {
-            uri =  conf.GetSection("WebApiUri").Value + $"/products";
+            uri =  conf.GetSection("WebApiUri").Value + $"api/products";
+            tokenUri = conf.GetSection("WebApiUri").Value + $"token?username=admin@gmail.com&password=12345";
+        }
+
+        public async Task<string> GetToken()
+        {
+
+            var resp = await client.PostAsync(tokenUri, null); ;
+            var result = resp.Content.ReadAsStringAsync().Result;
+            var login = JsonConvert.DeserializeObject<LoginResponse>(result);
+            return login.access_token;
+        }
+
+        public void AddToken(string token)
+        {
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
         }
 
         public async Task<IEnumerable<Product>> GetProducts()
